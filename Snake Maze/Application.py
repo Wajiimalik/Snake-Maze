@@ -5,22 +5,14 @@ from enum import Enum
 from time import sleep
 
 import Colors as Color
+from Menu import Menu, Option_Mode
 
 
 class Game_Mode(Enum):
     Start = 1
     Selection = 2
     Playing = 3
-    Win = 4
-
-
-class Menu_Mode(Enum):
-    No_Menu = 0
-    Menu_Options = 1
-    How_To_Play = 2
-    About_Me = 3
-    Exit = 4
-
+    Win_End = 4
 
 class Move(Enum):
     Forward =  1
@@ -37,7 +29,7 @@ class Game:
         self.move_event = None
 
         self._game_mode = Game_Mode.Start
-        self._menu_mode = Menu_Mode.No_Menu
+        self._menu = Menu()
 
 
     def Init(self):
@@ -62,6 +54,8 @@ class Game:
 
         try:
             self._Start_Window = pygame.image.load(path + r'\Start_Game_Window_.jpg')
+            self._menu.Load(path)
+            
         except:
             print('Load Failed')
             return False
@@ -69,39 +63,56 @@ class Game:
 
     def Event(self, event):
         if event.type == pygame.QUIT:
+            self._game_mode = Game_Mode.Win_End
             self._running = False
 
         elif event.type == pygame.KEYDOWN:
 
             if event.key == pygame.K_ESCAPE:
-                self._running = False
+                    self._game_mode = Game_Mode.Win_End
+                    self._running = False
 
-            elif event.key == pygame.K_w:
-                self.move_event = Move.Forward
+            if self._game_mode == Game_Mode.Playing:
+                if event.key == pygame.K_w or event.key == pygame.K_UP:
+                    self.move_event = Move.Forward
 
-            elif event.key == pygame.K_a:
-                self.move_event = Move.Left
+                elif event.key == pygame.K_a or event.key == pygame.K_RIGHT:
+                    self.move_event = Move.Left
 
-            elif event.key == pygame.K_d:
-                self.move_event = Move.Right
+                elif event.key == pygame.K_d or event.key == pygame.K_LEFT:
+                    self.move_event = Move.Right
 
-            elif event.key == pygame.K_s:
-                self.move_event = Move.Backward
+                elif event.key == pygame.K_s or event.key == pygame.K_DOWN:
+                    self.move_event = Move.Backward
+
+
+            elif self._game_mode == Game_Mode.Selection:
+                self._menu.Handle_Events(event)
+
+                if self._menu._opt_1._mode == Option_Mode.Selected:
+                    pass
+                    self._game_mode = Game_Mode.Playing
+                    self._window.fill(Color.WHITE)
+
+                elif self._menu._opt_2._mode == Option_Mode.Selected:
+                    self._game_mode = Game_Mode.Win_End
+                    self._running = False
 
 
     def Loop(self):
         if self._game_mode == Game_Mode.Start:
-            sleep(3)
-            self._window.fill(Color.WHITE)
+            sleep(2)
+            self._game_mode = Game_Mode.Selection
             pass
 
         elif self._game_mode == Game_Mode.Selection:
+            self._menu.Draw(self._window)
             pass
 
         elif self._game_mode == Game_Mode.Playing:
             pass
 
-        elif self._game_mode == Game_Mode.Win:
+        elif self._game_mode == Game_Mode.Win_End:
             pass
 
 
